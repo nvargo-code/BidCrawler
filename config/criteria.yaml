@@ -1,0 +1,47 @@
+keywords:
+  - construction
+  - renovation
+  - general contractor
+  - GC
+  - MEP
+  - HVAC
+  - roofing
+  - concrete
+  - structural
+  - sitework
+  - demolition
+  - framing
+  - foundation
+  - grading
+  - tenant improvement
+  - earthwork
+  - paving
+  - electrical
+  - plumbing
+  - mechanical
+  - drywall
+  - waterproofing
+  - masonry
+  - steel erection
+  - carpentry
+
+naics_prefixes:
+  - "236"   # Building construction
+  - "237"   # Heavy & civil engineering
+  - "238"   # Specialty trade contractors
+
+counties:
+  - Dallas
+  - Tarrant
+  - Collin
+  - Denton
+  - Rockwall
+  - Kaufman
+  - Ellis
+  - Johnson
+  - Parker
+  - Wise
+  - Hunt
+  - Grayson
+
+min_value: 50000

@@ -1,0 +1,8 @@
+id: bidnet
+source_type: scraper_playwright
+enabled: true
+base_url: https://www.bidnetdirect.com
+search_url: https://www.bidnetdirect.com/texas
+page_size: 25
+max_pages: 20
+delay: 2.0

@@ -1,0 +1,24 @@
+# Database & exports (data stays local / on server)
+data/bids.duckdb
+data/exports/
+
+# Secrets
+.env
+*.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+
+# Pytest
+.pytest_cache/
+
+# Misc
+error.txt
+*.log

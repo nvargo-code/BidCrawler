@@ -1,0 +1,11 @@
+db_path: data/bids.duckdb
+log_level: INFO
+export_dir: data/exports
+
+rate_limits:
+  default_delay: 1.0       # seconds between requests
+  bidnet_delay: 2.0        # playwright-based, slower
+  sam_gov_delay: 0.5       # registered key = 1000/day
+
+# Skip re-fetching sources that ran within this many hours
+fresh_threshold_hours: 20

@@ -1,0 +1,9 @@
+id: opengov
+source_type: api
+enabled: false   # requires OpenGov API credentials
+base_url: https://api.procurement.opengov.com/gateway
+# Set OPENGOV_EMAIL and OPENGOV_API_KEY environment variables
+env_email: OPENGOV_EMAIL
+env_key: OPENGOV_API_KEY
+page_size: 50
+max_pages: 20
