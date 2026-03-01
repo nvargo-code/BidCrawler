@@ -24,23 +24,23 @@ sys.path.insert(0, str(PROJECT_ROOT))
 # Config & DB
 # ---------------------------------------------------------------------------
 
-@st.cache_resource(show_spinner=False)
-def get_db():
+@st.cache_data(ttl=300, show_spinner="Loading bids…")
+def load_bids_df() -> pd.DataFrame:
     from bid_crawler.config import CrawlerConfig
     from bid_crawler.db import BidDB
 
     cfg_path = PROJECT_ROOT / "config" / "settings.yaml"
     cfg = CrawlerConfig.from_yaml(cfg_path)
     db_path = PROJECT_ROOT / cfg.db_path
+
+    # Open read-only, load data, close immediately so the crawler can write
     db = BidDB(db_path)
     db.connect(read_only=True)
-    return db
+    try:
+        df = db.export_bids_df()
+    finally:
+        db.close()
 
-
-@st.cache_data(ttl=300, show_spinner="Loading bids…")
-def load_bids_df() -> pd.DataFrame:
-    db = get_db()
-    df = db.export_bids_df()
     if df.empty:
         return df
 
