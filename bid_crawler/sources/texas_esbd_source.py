@@ -37,6 +37,7 @@ class TexasESBDSource(BaseSource):
     def __init__(self, source_cfg: SourceConfig, criteria: CriteriaConfig):
         super().__init__(source_cfg, criteria)
         self.session.headers.update({
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "x-sc-touchpoint": "shopping",
             "x-requested-with": "XMLHttpRequest",
             "content-type": "application/json; charset=UTF-8",
