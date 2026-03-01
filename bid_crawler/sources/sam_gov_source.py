@@ -1,4 +1,8 @@
-"""SAM.gov Opportunities API source (federal construction bids in TX)."""
+"""SAM.gov Opportunities API source (federal construction bids in TX).
+
+Searches by construction keyword using the `q` param, which searches titles
+and descriptions. Iterates over multiple keywords and deduplicates by noticeId.
+"""
 
 from __future__ import annotations
 import logging
@@ -11,13 +15,19 @@ from bid_crawler.config import CriteriaConfig, SourceConfig
 
 logger = logging.getLogger(__name__)
 
-# Translate SAM status codes to our schema
-_STATUS_MAP = {
-    "Active": "open",
-    "Inactive": "closed",
-    "Awarded": "awarded",
-    "Cancelled": "cancelled",
-}
+# High-signal construction keywords to search for on SAM.gov
+_SEARCH_KEYWORDS = [
+    "construction",
+    "renovation",
+    "roofing",
+    "HVAC",
+    "paving",
+    "demolition",
+    "electrical",
+    "plumbing",
+    "sitework",
+    "concrete",
+]
 
 
 @register("sam_gov")
@@ -38,8 +48,6 @@ class SamGovSource(BaseSource):
         if self._api_key:
             headers["X-Api-Key"] = self._api_key
 
-        # postedFrom/postedTo are required by the API.
-        # Use `since` for incremental loads; fall back to 90-day window on first run.
         today = datetime.now(timezone.utc)
         if since:
             posted_from = since.strftime("%m/%d/%Y")
@@ -47,34 +55,53 @@ class SamGovSource(BaseSource):
             posted_from = (today - timedelta(days=90)).strftime("%m/%d/%Y")
         posted_to = today.strftime("%m/%d/%Y")
 
+        seen_ids: set[str] = set()
+
+        for keyword in _SEARCH_KEYWORDS:
+            logger.debug("SAM.gov: searching keyword %r", keyword)
+            yield from self._search_keyword(
+                base_url, headers, keyword, posted_from, posted_to, seen_ids
+            )
+            self._sleep()
+
+    def _search_keyword(
+        self,
+        base_url: str,
+        headers: dict,
+        keyword: str,
+        posted_from: str,
+        posted_to: str,
+        seen_ids: set[str],
+    ) -> Iterator[dict[str, Any]]:
         page = 0
         page_size = self.cfg.page_size
 
         while page < self.cfg.max_pages:
             params: dict[str, Any] = {
-                "ptype": "o",           # o=Solicitation; add k,p for broader coverage
+                "q": keyword,
                 "state": "TX",
                 "postedFrom": posted_from,
                 "postedTo": posted_to,
                 "limit": page_size,
                 "offset": page * page_size,
             }
-            # Note: 'ncode' only accepts exact codes (no wildcards); NAICS filtering
-            # is handled locally by the matcher after fetch.
 
             try:
                 resp = self._get(base_url, headers=headers, params=params)
                 data = resp.json()
             except Exception as exc:
-                logger.error("SAM.gov API error on page %d: %s", page, exc)
+                logger.error("SAM.gov API error (keyword=%r, page=%d): %s", keyword, page, exc)
                 break
 
             opportunities = data.get("opportunitiesData", [])
             if not opportunities:
-                logger.debug("SAM.gov: no more results at offset %d", page * page_size)
                 break
 
             for opp in opportunities:
+                notice_id = opp.get("noticeId") or opp.get("solicitationNumber", "")
+                if notice_id in seen_ids:
+                    continue
+                seen_ids.add(notice_id)
                 yield self._normalize(opp)
 
             total_records = data.get("totalRecords", 0)
@@ -90,7 +117,6 @@ class SamGovSource(BaseSource):
         place = opp.get("placeOfPerformance", {}) or {}
         location = place.get("city", {}) or {}
 
-        # Extract contact info
         poc_list = opp.get("pointOfContact", []) or []
         contact = poc_list[0] if poc_list else {}
 
@@ -111,10 +137,18 @@ class SamGovSource(BaseSource):
             "agency_type": "federal",
             "posted_date": self.normalize_date(opp.get("postedDate")),
             "due_date": self.normalize_date(opp.get("responseDeadLine")),
-            "estimated_value": _parse_float(opp.get("award", {}).get("amount") if isinstance(opp.get("award"), dict) else None),
+            "estimated_value": _parse_float(
+                opp.get("award", {}).get("amount")
+                if isinstance(opp.get("award"), dict)
+                else None
+            ),
             "location_city": location.get("name", ""),
             "location_county": "",
-            "location_state": place.get("state", {}).get("code", "TX") if isinstance(place.get("state"), dict) else "TX",
+            "location_state": (
+                place.get("state", {}).get("code", "TX")
+                if isinstance(place.get("state"), dict)
+                else "TX"
+            ),
             "location_zip": place.get("zip", ""),
             "naics_code": opp.get("naicsCode", ""),
             "naics_description": opp.get("classificationCode", ""),
@@ -123,7 +157,9 @@ class SamGovSource(BaseSource):
             "contact_email": contact.get("email", ""),
             "contact_phone": contact.get("phone", ""),
             "bid_url": f"https://sam.gov/opp/{notice_id}/view",
-            "documents_url": opp.get("resourceLinks", [""])[0] if opp.get("resourceLinks") else "",
+            "documents_url": (
+                opp.get("resourceLinks", [""])[0] if opp.get("resourceLinks") else ""
+            ),
             "status": status,
             "raw_payload": opp,
         }
