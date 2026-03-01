@@ -17,8 +17,8 @@ class BidDB:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn: Optional[duckdb.DuckDBPyConnection] = None
 
-    def connect(self) -> "BidDB":
-        self._conn = duckdb.connect(str(self.db_path))
+    def connect(self, read_only: bool = False) -> "BidDB":
+        self._conn = duckdb.connect(str(self.db_path), read_only=read_only)
         return self
 
     def close(self):

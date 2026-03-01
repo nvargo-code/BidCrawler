@@ -33,7 +33,7 @@ def get_db():
     cfg = CrawlerConfig.from_yaml(cfg_path)
     db_path = PROJECT_ROOT / cfg.db_path
     db = BidDB(db_path)
-    db.connect()
+    db.connect(read_only=True)
     return db
 
 
