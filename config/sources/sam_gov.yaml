@@ -3,6 +3,6 @@ source_type: api
 enabled: true
 base_url: https://api.sam.gov/opportunities/v2/search
 page_size: 100
-max_pages: 10
+max_pages: 3
 # Set SAM_GOV_API_KEY environment variable
 env_key: SAM_GOV_API_KEY

@@ -15,18 +15,13 @@ from bid_crawler.config import CriteriaConfig, SourceConfig
 
 logger = logging.getLogger(__name__)
 
-# High-signal construction keywords to search for on SAM.gov
+# High-signal construction keywords to search for on SAM.gov.
+# Keep this list short — each keyword is a separate API call with pagination.
 _SEARCH_KEYWORDS = [
     "construction",
     "renovation",
     "roofing",
-    "HVAC",
     "paving",
-    "demolition",
-    "electrical",
-    "plumbing",
-    "sitework",
-    "concrete",
 ]
 
 
@@ -87,7 +82,8 @@ class SamGovSource(BaseSource):
             }
 
             try:
-                resp = self._get(base_url, headers=headers, params=params)
+                resp = self.session.get(base_url, headers=headers, params=params, timeout=10)
+                resp.raise_for_status()
                 data = resp.json()
             except Exception as exc:
                 logger.error("SAM.gov API error (keyword=%r, page=%d): %s", keyword, page, exc)
