@@ -6,7 +6,6 @@ POST https://www.txsmartbuy.gov/app/extensions/CPA/CPAMain/1.0.0/services/ESBD.S
 
 from __future__ import annotations
 import logging
-from datetime import datetime
 from typing import Any, Iterator, Optional
 
 from bid_crawler.sources import register
@@ -74,18 +73,6 @@ class TexasESBDSource(BaseSource):
                 if ext_id in seen_ids:
                     continue
                 seen_ids.add(ext_id)
-
-                # Incremental: skip bids posted before last run
-                if since:
-                    posted_raw = item.get("postingDate", "")
-                    if posted_raw:
-                        try:
-                            posted = datetime.strptime(posted_raw, "%m/%d/%Y")
-                            if posted < since.replace(tzinfo=None):
-                                continue
-                        except ValueError:
-                            pass
-
                 yield self._normalize(item)
 
             fetched_so_far = page * records_per_page
