@@ -3,11 +3,12 @@
 from __future__ import annotations
 import json
 import logging
+import os
 import re
 import time
 from datetime import datetime
 from typing import Any, Iterator, Optional
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from bid_crawler.sources import register
 from bid_crawler.sources.base import BaseSource
@@ -32,6 +33,29 @@ class BidNetSource(BaseSource):
     def __init__(self, source_cfg: SourceConfig, criteria: CriteriaConfig):
         super().__init__(source_cfg, criteria)
         self._delay = source_cfg.delay or 2.0
+        # Proxy URL read from env var named in config (e.g. BIDNET_PROXY_URL)
+        proxy_env = source_cfg.extras.get("proxy_env")
+        self._proxy_url: Optional[str] = os.environ.get(proxy_env) if proxy_env else None
+        if self._proxy_url:
+            logger.info("BidNet: using proxy %s", self._proxy_url.split("@")[-1])
+        else:
+            logger.warning(
+                "BidNet: no proxy configured — datacenter IPs are likely blocked. "
+                "Set %s to a residential proxy URL (http://user:pass@host:port).",
+                proxy_env or "BIDNET_PROXY_URL",
+            )
+
+    def _playwright_proxy(self) -> Optional[dict]:
+        """Parse proxy URL into Playwright proxy dict."""
+        if not self._proxy_url:
+            return None
+        parsed = urlparse(self._proxy_url)
+        proxy: dict = {"server": f"{parsed.scheme}://{parsed.hostname}:{parsed.port}"}
+        if parsed.username:
+            proxy["username"] = parsed.username
+        if parsed.password:
+            proxy["password"] = parsed.password
+        return proxy
 
     def fetch(self, since: Optional[datetime] = None) -> Iterator[dict[str, Any]]:
         if not PLAYWRIGHT_AVAILABLE:
@@ -42,8 +66,10 @@ class BidNetSource(BaseSource):
 
         seen_ids: set[str] = set()
 
+        pw_proxy = self._playwright_proxy()
+
         with sync_playwright() as pw:
-            browser = pw.chromium.launch(headless=True)
+            browser = pw.chromium.launch(headless=True, proxy=pw_proxy)
             context = browser.new_context(
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
             )
