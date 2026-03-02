@@ -1,0 +1,10 @@
+id: dallas_isd_bonfire
+source_type: api
+enabled: true
+max_pages: 1
+delay: 0.0
+bonfire_tenant: dallasisd
+agency_name: Dallas ISD
+agency_type: school_district
+location_county: Dallas
+location_city: Dallas

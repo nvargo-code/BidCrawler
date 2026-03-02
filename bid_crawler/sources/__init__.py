@@ -28,7 +28,13 @@ def get_source_class(source_id: str) -> Type["BaseSource"]:
             opengov_source,
             fort_worth_bonfire_source,
             dallas_bonfire_source,
+            bonfire_source,
         )
+        # Register generic BonfireSource for all YAML-configured Bonfire tenants
+        from bid_crawler.sources.bonfire_source import BonfireSource
+        for _tid in _BONFIRE_TENANT_IDS:
+            if _tid not in _REGISTRY:
+                _REGISTRY[_tid] = BonfireSource
     if source_id not in _REGISTRY:
         raise KeyError(f"Unknown source: {source_id!r}. Available: {list(_REGISTRY)}")
     return _REGISTRY[source_id]
@@ -45,5 +51,18 @@ def list_sources() -> list[str]:
         opengov_source,
         fort_worth_bonfire_source,
         dallas_bonfire_source,
+        bonfire_source,
     )
+    from bid_crawler.sources.bonfire_source import BonfireSource
+    for _tid in _BONFIRE_TENANT_IDS:
+        if _tid not in _REGISTRY:
+            _REGISTRY[_tid] = BonfireSource
     return list(_REGISTRY)
+
+
+# IDs of Bonfire tenants configured via YAML extras (generic BonfireSource class)
+_BONFIRE_TENANT_IDS = [
+    "dallas_isd_bonfire",
+    "richardson_isd_bonfire",
+    "rockwall_isd_bonfire",
+]
