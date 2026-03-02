@@ -36,6 +36,11 @@ class SamGovSource(BaseSource):
             logger.warning(
                 "SAM_GOV_API_KEY not set — requests will use public (10 req/day) tier"
             )
+        # Replace inherited retry session with a plain session — SAM.gov rate
+        # limits cause the retry adapter to sleep for minutes on 429s.
+        import requests as _requests
+        self.session = _requests.Session()
+        self.session.headers.update({"User-Agent": "bid-crawler/0.1"})
 
     def fetch(self, since: Optional[datetime] = None) -> Iterator[dict[str, Any]]:
         base_url = self.cfg.base_url
