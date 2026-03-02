@@ -1,0 +1,6 @@
+id: dallas_bonfire
+source_type: api
+enabled: true
+base_url: https://dallascityhall.bonfirehub.com/PublicPortal/getOpenPublicOpportunitiesSectionData
+max_pages: 1
+delay: 0.0
