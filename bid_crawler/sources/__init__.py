@@ -26,6 +26,7 @@ def get_source_class(source_id: str) -> Type["BaseSource"]:
             texas_esbd_source,
             bidnet_source,
             opengov_source,
+            fort_worth_bonfire_source,
         )
     if source_id not in _REGISTRY:
         raise KeyError(f"Unknown source: {source_id!r}. Available: {list(_REGISTRY)}")
@@ -41,5 +42,6 @@ def list_sources() -> list[str]:
         texas_esbd_source,
         bidnet_source,
         opengov_source,
+        fort_worth_bonfire_source,
     )
     return list(_REGISTRY)

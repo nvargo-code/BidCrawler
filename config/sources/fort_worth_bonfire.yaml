@@ -1,0 +1,6 @@
+id: fort_worth_bonfire
+source_type: api
+enabled: true
+base_url: https://fortworthtexas.bonfirehub.com/PublicPortal/getOpenPublicOpportunitiesSectionData
+max_pages: 1
+delay: 0.0
