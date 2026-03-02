@@ -6,13 +6,29 @@ POST https://www.txsmartbuy.gov/app/extensions/CPA/CPAMain/1.0.0/services/ESBD.S
 
 from __future__ import annotations
 import logging
+import re
 from typing import Any, Iterator, Optional
+
+# DFW target counties for heuristic detection from agency/title text
+_DFW_COUNTIES = [
+    "Dallas", "Tarrant", "Collin", "Denton", "Rockwall",
+    "Kaufman", "Ellis", "Johnson", "Parker", "Wise", "Hunt", "Grayson",
+]
+_COUNTY_PATTERN = re.compile(
+    r"\b(" + "|".join(_DFW_COUNTIES) + r")\b", re.IGNORECASE
+)
 
 from bid_crawler.sources import register
 from bid_crawler.sources.base import BaseSource
 from bid_crawler.config import CriteriaConfig, SourceConfig
 
 logger = logging.getLogger(__name__)
+
+def _detect_county(text: str) -> str:
+    """Return the first DFW county name found in text, or empty string."""
+    m = _COUNTY_PATTERN.search(text)
+    return m.group(1).title() if m else ""
+
 
 _STATUS_MAP = {
     "1": "open",
@@ -94,18 +110,23 @@ class TexasESBDSource(BaseSource):
         # NIGP code string used for keyword matching (e.g. "Construction Materials")
         nigp = item.get("nigpCodes", "")
 
+        # Detect DFW county from agency name + title
+        agency = item.get("agencyName", "")
+        title = item.get("title", "")
+        county = _detect_county(f"{agency} {title}")
+
         return {
             "source_id": self.source_id,
             "external_id": ext_id,
             "bid_number": item.get("solicitationId", ""),
-            "title": item.get("title", ""),
+            "title": title,
             "description": nigp,
-            "agency": item.get("agencyName", ""),
+            "agency": agency,
             "agency_type": "state",
             "posted_date": self.normalize_date(item.get("postingDate")),
             "due_date": self.normalize_date(item.get("responseDue")),
             "location_state": "TX",
-            "location_county": "",
+            "location_county": county,
             "location_city": "",
             "naics_code": "",
             "naics_description": nigp,
