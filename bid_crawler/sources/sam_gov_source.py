@@ -43,11 +43,10 @@ class SamGovSource(BaseSource):
         if self._api_key:
             headers["X-Api-Key"] = self._api_key
 
+        # Always use a 90-day window — dedup handles re-runs.
+        # (Narrowing by `since` caused empty windows after failed/empty runs.)
         today = datetime.now(timezone.utc)
-        if since:
-            posted_from = since.strftime("%m/%d/%Y")
-        else:
-            posted_from = (today - timedelta(days=90)).strftime("%m/%d/%Y")
+        posted_from = (today - timedelta(days=90)).strftime("%m/%d/%Y")
         posted_to = today.strftime("%m/%d/%Y")
 
         seen_ids: set[str] = set()
