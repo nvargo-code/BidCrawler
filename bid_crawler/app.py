@@ -17,6 +17,18 @@ import streamlit as st
 # Resolve project root (works whether run from project dir or bid_crawler/)
 PROJECT_ROOT = Path(__file__).parent.parent
 
+_SOURCE_LABELS = {
+    "texas_esbd":             "Texas ESBD",
+    "sam_gov":                "SAM.gov (Federal)",
+    "fort_worth_bonfire":     "Fort Worth Bonfire",
+    "dallas_bonfire":         "Dallas Bonfire",
+    "dallas_isd_bonfire":     "Dallas ISD",
+    "richardson_isd_bonfire": "Richardson ISD",
+    "rockwall_isd_bonfire":   "Rockwall ISD",
+    "bidnet":                 "BidNet Direct",
+    "opengov":                "OpenGov",
+}
+
 # Add to path so imports work
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -97,6 +109,13 @@ all_agency_types = sorted(df_all["agency_type"].dropna().unique().tolist())
 all_agency_types = [a for a in all_agency_types if a]
 selected_agency_types = st.sidebar.multiselect("Agency Type", all_agency_types, default=[])
 
+# Source
+source_ids = sorted(df_all["source_id"].dropna().unique().tolist()) if "source_id" in df_all.columns else []
+source_labels = [_SOURCE_LABELS.get(s, s) for s in source_ids]
+selected_labels = st.sidebar.multiselect("Source", source_labels)
+label_to_id = {v: k for k, v in _SOURCE_LABELS.items()}
+selected_sources = [label_to_id.get(l, l) for l in selected_labels]
+
 # NAICS prefix
 all_naics = sorted(df_all["naics_code"].dropna().unique().tolist())
 naics_prefixes = sorted({n[:3] for n in all_naics if n})
@@ -127,6 +146,9 @@ if selected_counties:
 
 if selected_agency_types:
     df = df[df["agency_type"].isin(selected_agency_types)]
+
+if selected_sources:
+    df = df[df["source_id"].isin(selected_sources)]
 
 if selected_naics:
     df = df[df["naics_code"].str[:3].isin(selected_naics)]
