@@ -103,9 +103,15 @@ class TexasESBDSource(BaseSource):
         status = _STATUS_MAP.get(str(item.get("status", "")), "open")
 
         url_path = item.get("url", "")
-        bid_url = (
-            f"{self.BASE_URL}{url_path}" if url_path.startswith("/") else url_path
-        )
+        solicitation_id = item.get("solicitationId", "")
+        if url_path.startswith("/"):
+            bid_url = f"{self.BASE_URL}{url_path}"
+        elif url_path:
+            bid_url = url_path  # external portal URL (Bonfire, Jaggaer, etc.)
+        elif solicitation_id:
+            bid_url = f"{self.BASE_URL}/esbd/{solicitation_id}"
+        else:
+            bid_url = ""
 
         # NIGP code string used for keyword matching (e.g. "Construction Materials")
         nigp = item.get("nigpCodes", "")
