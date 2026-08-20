@@ -14,7 +14,7 @@ export function Header({ bidCount, onRefresh, refreshing, filterSlot }: HeaderPr
     <header className="sticky top-0 z-30 bg-background/90 backdrop-blur-md border-b border-border">
       <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-lg font-bold text-foreground tracking-tight">🏗️ BidFeed</span>
+          <span className="text-lg font-bold text-foreground tracking-tight">BidFeed</span>
           {bidCount != null && (
             <span className="text-xs text-muted hidden sm:block">
               {bidCount} open bids

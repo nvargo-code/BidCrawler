@@ -20,6 +20,8 @@ export function useBids(filters: BidFilters) {
 
       const from = reset ? 0 : offset.current;
 
+      const today = new Date().toISOString().slice(0, 10);
+
       let q = supabase
         .from("bids")
         .select(
@@ -27,6 +29,7 @@ export function useBids(filters: BidFilters) {
         )
         .eq("status", "open")
         .gte("match_score", filters.minScore)
+        .or(`due_date.is.null,due_date.gte.${today}`)
         .order("match_score", { ascending: false })
         .order("due_date", { ascending: true, nullsFirst: false })
         .range(from, from + PAGE_SIZE - 1);
