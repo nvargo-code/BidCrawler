@@ -12,14 +12,15 @@ export async function GET() {
 
   if (urlOk && keyOk) {
     try {
-      const res = await fetch(`${url}/rest/v1/bids?select=id&status=eq.open&limit=1`, {
+      const base = url.replace(/\/$/, "");
+      const res = await fetch(`${base}/rest/v1/bids?select=id&limit=3`, {
         headers: { apikey: key, Authorization: `Bearer ${key}` },
       });
+      const body = await res.text();
       if (res.ok) {
-        const data = await res.json();
-        bidCount = data.length;
+        bidCount = JSON.parse(body).length;
       } else {
-        fetchError = `${res.status} ${res.statusText}`;
+        fetchError = `${res.status} — ${body.slice(0, 200)}`;
       }
     } catch (e) {
       fetchError = String(e);
