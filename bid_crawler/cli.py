@@ -219,5 +219,59 @@ def export(fmt, status, min_score):
     click.echo(f"Exported {len(df)} bids to {output_path}")
 
 
+# ---------------------------------------------------------------------------
+# sync
+# ---------------------------------------------------------------------------
+
+@cli.command()
+@click.option("--run-first", is_flag=True, help="Run all enabled sources before syncing")
+def sync(run_first):
+    """Push open bids from local DuckDB to Supabase.
+
+    \b
+    Examples:
+        bid-crawler sync
+        bid-crawler sync --run-first
+    """
+    crawler_cfg, criteria_cfg, all_source_cfgs = _load_configs()
+    _setup_logging(crawler_cfg.log_level)
+
+    from bid_crawler.db import BidDB
+    from bid_crawler.supabase_sync import sync_to_supabase
+
+    db_path = PROJECT_ROOT / crawler_cfg.db_path
+
+    if run_first:
+        from bid_crawler.etl.pipeline import run_source
+        import os
+        # Load BidSync env vars from Windows registry if not in session
+        for var in ("BIDSYNC_EMAIL", "BIDSYNC_PASSWORD"):
+            if not os.environ.get(var):
+                try:
+                    import winreg
+                    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as k:
+                        os.environ[var] = winreg.QueryValueEx(k, var)[0]
+                except Exception:
+                    pass
+
+        click.echo("Running all enabled sources first…")
+        with BidDB(db_path) as db:
+            for source_cfg in [s for s in all_source_cfgs if s.enabled]:
+                click.echo(f"  >> {source_cfg.id}")
+                run_source(
+                    source_cfg=source_cfg,
+                    crawler_cfg=crawler_cfg,
+                    criteria_cfg=criteria_cfg,
+                    db=db,
+                )
+
+    click.echo("Syncing to Supabase…")
+    try:
+        counts = sync_to_supabase(db_path)
+        click.echo(f"Done. Pushed {counts['sources']} sources, {counts['bids']} open bids to Supabase.")
+    except RuntimeError as e:
+        click.echo(f"[ERROR] {e}", err=True)
+
+
 if __name__ == "__main__":
     cli()
