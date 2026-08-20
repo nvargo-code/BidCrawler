@@ -1,0 +1,12 @@
+id: ionwave_red_oak_isd
+source_type: scraper_playwright
+# Requires IONWAVE_USERNAME + IONWAVE_PASSWORD env vars (Novium credentials)
+enabled: false
+max_pages: 5
+delay: 1.5
+ionwave_tenant: redoakisd
+agency_name: Red Oak ISD
+agency_type: school_district
+location_county: Ellis
+location_city: Red Oak
+requires_auth: true

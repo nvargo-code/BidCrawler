@@ -19,6 +19,27 @@ venv/
 # Pytest
 .pytest_cache/
 
+# Debug / scratch scripts (not part of production code)
+debug_*.py
+test_*.py
+fix_*.py
+
+# Node (docx generation helper — not project deps)
+node_modules/
+package.json
+package-lock.json
+create_setup_doc.js
+
+# Word/Office temp files
+*.docx
+~$*
+
+# Debug screenshots
+*.png
+
+# Playwright browser binaries
+playwright-report/
+
 # Misc
 error.txt
 *.log

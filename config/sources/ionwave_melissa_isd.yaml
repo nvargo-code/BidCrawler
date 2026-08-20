@@ -1,0 +1,12 @@
+id: ionwave_melissa_isd
+source_type: scraper_playwright
+# Requires IONWAVE_USERNAME + IONWAVE_PASSWORD env vars (Novium credentials)
+enabled: false
+max_pages: 5
+delay: 1.5
+ionwave_tenant: melissaisd
+agency_name: Melissa ISD
+agency_type: school_district
+location_county: Collin
+location_city: Melissa
+requires_auth: true

@@ -1,0 +1,12 @@
+id: ionwave_tips
+source_type: scraper_playwright
+# Requires IONWAVE_USERNAME + IONWAVE_PASSWORD env vars (Novium credentials)
+enabled: false
+max_pages: 10
+delay: 1.5
+ionwave_tenant: tips
+agency_name: TIPS-USA (Interlocal Purchasing System)
+agency_type: cooperative
+location_county: ""
+location_city: ""
+requires_auth: true

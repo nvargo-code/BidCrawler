@@ -1,0 +1,11 @@
+id: ionwave_plano
+source_type: scraper_playwright
+enabled: true
+max_pages: 5
+delay: 1.5
+ionwave_tenant: planotx
+agency_name: City of Plano
+agency_type: municipal
+location_county: Collin
+location_city: Plano
+requires_auth: false

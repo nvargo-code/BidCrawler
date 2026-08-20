@@ -1,0 +1,9 @@
+id: bidsync
+source_type: scraper_playwright
+enabled: true
+base_url: https://app.bidsync.com
+max_pages: 20
+delay: 1.5
+# Credentials loaded from env vars: BIDSYNC_EMAIL, BIDSYNC_PASSWORD
+env_email: BIDSYNC_EMAIL
+env_key: BIDSYNC_PASSWORD

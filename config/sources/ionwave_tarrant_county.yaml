@@ -1,0 +1,11 @@
+id: ionwave_tarrant_county
+source_type: scraper_playwright
+enabled: true
+max_pages: 5
+delay: 1.5
+ionwave_tenant: tarrantcountytx
+agency_name: Tarrant County
+agency_type: county
+location_county: Tarrant
+location_city: Fort Worth
+requires_auth: false

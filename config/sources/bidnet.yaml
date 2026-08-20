@@ -1,8 +1,12 @@
 id: bidnet
 source_type: scraper_playwright
-enabled: true
+# Blocked on datacenter IPs — set BIDNET_PROXY_URL and flip to true to enable.
+# Proxy format: http://user:pass@host:port  (residential proxy required)
+enabled: false
 base_url: https://www.bidnetdirect.com
 search_url: https://www.bidnetdirect.com/texas
 page_size: 25
 max_pages: 20
 delay: 2.0
+# Name of env var holding the residential proxy URL
+proxy_env: BIDNET_PROXY_URL

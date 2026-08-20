@@ -1,0 +1,11 @@
+id: ionwave_mesquite_isd
+source_type: scraper_playwright
+enabled: true
+max_pages: 5
+delay: 1.5
+ionwave_tenant: mesquiteisd
+agency_name: Mesquite ISD
+agency_type: school_district
+location_county: Dallas
+location_city: Mesquite
+requires_auth: false

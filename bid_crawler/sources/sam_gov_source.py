@@ -15,13 +15,10 @@ from bid_crawler.config import CriteriaConfig, SourceConfig
 
 logger = logging.getLogger(__name__)
 
-# High-signal construction keywords to search for on SAM.gov.
-# Keep this list short — each keyword is a separate API call with pagination.
+# Single broad keyword — SAM.gov API has a 1,000 req/day limit.
+# One keyword × max_pages = minimal API usage; local matcher handles scoring.
 _SEARCH_KEYWORDS = [
     "construction",
-    "renovation",
-    "roofing",
-    "paving",
 ]
 
 
@@ -87,6 +84,9 @@ class SamGovSource(BaseSource):
 
             try:
                 resp = self.session.get(base_url, headers=headers, params=params, timeout=10)
+                if resp.status_code == 429:
+                    logger.warning("SAM.gov: rate limited (429) — daily limit likely exhausted. Stopping.")
+                    return
                 resp.raise_for_status()
                 data = resp.json()
             except Exception as exc:

@@ -4,5 +4,6 @@ enabled: true
 base_url: https://api.sam.gov/opportunities/v2/search
 page_size: 100
 max_pages: 3
+delay: 3.0  # seconds between pages — API limit is 1000 req/day
 # Set SAM_GOV_API_KEY environment variable
 env_key: SAM_GOV_API_KEY

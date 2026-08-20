@@ -18,15 +18,27 @@ import streamlit as st
 PROJECT_ROOT = Path(__file__).parent.parent
 
 _SOURCE_LABELS = {
-    "texas_esbd":             "Texas ESBD",
-    "sam_gov":                "SAM.gov (Federal)",
-    "fort_worth_bonfire":     "Fort Worth Bonfire",
-    "dallas_bonfire":         "Dallas Bonfire",
-    "dallas_isd_bonfire":     "Dallas ISD",
-    "richardson_isd_bonfire": "Richardson ISD",
-    "rockwall_isd_bonfire":   "Rockwall ISD",
-    "bidnet":                 "BidNet Direct",
-    "opengov":                "OpenGov",
+    "texas_esbd":              "Texas ESBD",
+    "sam_gov":                 "SAM.gov (Federal)",
+    "fort_worth_bonfire":      "Fort Worth Bonfire",
+    "dallas_bonfire":          "Dallas Bonfire",
+    "dallas_isd_bonfire":      "Dallas ISD (Bonfire)",
+    "richardson_isd_bonfire":  "Richardson ISD (Bonfire)",
+    "rockwall_isd_bonfire":    "Rockwall ISD (Bonfire)",
+    "bidnet":                  "BidNet Direct",
+    "opengov":                 "OpenGov",
+    "bidsync":                 "BidSync",
+    "ionwave_arlington_isd":   "Arlington ISD (Ion Wave)",
+    "ionwave_mesquite_isd":    "Mesquite ISD (Ion Wave)",
+    "ionwave_tarrant_county":  "Tarrant County (Ion Wave)",
+    "ionwave_irving":          "City of Irving (Ion Wave)",
+    "ionwave_plano":           "City of Plano (Ion Wave)",
+    "ionwave_fwisd":           "Fort Worth ISD (Ion Wave)",
+    "ionwave_nwisd":           "Northwest ISD (Ion Wave)",
+    "ionwave_red_oak_isd":     "Red Oak ISD (Ion Wave)",
+    "ionwave_terrell_isd":     "Terrell ISD (Ion Wave)",
+    "ionwave_melissa_isd":     "Melissa ISD (Ion Wave)",
+    "ionwave_tips":            "TIPS-USA (Ion Wave)",
 }
 
 # Add to path so imports work

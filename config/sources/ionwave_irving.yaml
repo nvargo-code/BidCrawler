@@ -1,0 +1,11 @@
+id: ionwave_irving
+source_type: scraper_playwright
+enabled: true
+max_pages: 5
+delay: 1.5
+ionwave_tenant: cityofirving
+agency_name: City of Irving
+agency_type: municipal
+location_county: Dallas
+location_city: Irving
+requires_auth: false

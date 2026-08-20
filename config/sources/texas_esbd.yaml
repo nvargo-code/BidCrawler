@@ -7,5 +7,5 @@ search_url: https://www.txsmartbuy.gov/esbd
 category_codes:
   - "91"   # Construction and Building
   - "90"   # Architectural and Engineering
-page_size: 25
-max_pages: 20
+page_size: 24
+max_pages: 35
