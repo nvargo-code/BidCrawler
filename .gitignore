@@ -24,10 +24,10 @@ debug_*.py
 test_*.py
 fix_*.py
 
-# Node (docx generation helper — not project deps)
+# Node (docx generation helper at repo root — not project deps)
 node_modules/
-package.json
-package-lock.json
+/package.json
+/package-lock.json
 create_setup_doc.js
 
 # Word/Office temp files
