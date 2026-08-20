@@ -76,9 +76,9 @@ export function BidCard({ bid, shortlisted, onShortlist }: BidCardProps) {
 
   const handleTouchEnd = () => {
     if (swipeX > 64) {
-      onShortlist?.(bid);
+      if (!shortlisted) onShortlist?.(bid);
       setSaved(true);
-      setTimeout(() => setSaved(false), 1000);
+      setTimeout(() => setSaved(false), 900);
     }
     setSwipeX(0);
   };
@@ -201,7 +201,7 @@ export function BidCard({ bid, shortlisted, onShortlist }: BidCardProps) {
         {saved && (
           <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-background/80 pointer-events-none">
             <span className="text-sm font-semibold text-green-400">
-              {shortlisted ? "Removed" : "Saved ✓"}
+              {shortlisted ? "Already saved" : "Saved ✓"}
             </span>
           </div>
         )}
