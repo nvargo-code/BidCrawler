@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
-import { X, Send, Trash2, Bookmark } from "lucide-react";
+import { X, Send, Trash2, Bookmark, Loader2, Check } from "lucide-react";
 import type { Bid } from "@/types/bid";
+import { useSavedRecipients } from "@/hooks/useSavedRecipients";
 
 interface ShortlistPanelProps {
   bids: Bid[];
@@ -9,30 +10,54 @@ interface ShortlistPanelProps {
   onClear: () => void;
 }
 
-function buildEmailBody(bids: Bid[]): string {
-  return bids
-    .map((bid, i) => {
-      const due = bid.due_date ?? "No due date";
-      const county = bid.location_county ? ` · ${bid.location_county} County` : "";
-      return `${i + 1}. ${bid.title ?? "Untitled"}
-   Agency: ${bid.agency ?? "Unknown"}${county}
-   Due: ${due}
-   ${bid.bid_url ?? "No URL"}`;
-    })
-    .join("\n\n");
-}
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function ShortlistPanel({ bids, onRemove, onClear }: ShortlistPanelProps) {
-  const [emailTo, setEmailTo] = useState("");
+  const { recipients: savedRecipients, loading: loadingSaved, refresh: refreshSaved } = useSavedRecipients();
   const [showCompose, setShowCompose] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [newEmail, setNewEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
 
-  const handleSend = () => {
-    const subject = encodeURIComponent(
-      `Bid Shortlist — ${bids.length} project${bids.length === 1 ? "" : "s"}`
-    );
-    const body = encodeURIComponent(buildEmailBody(bids));
-    const to = encodeURIComponent(emailTo.trim());
-    window.open(`mailto:${to}?subject=${subject}&body=${body}`);
+  const addRecipient = (raw: string) => {
+    const email = raw.trim();
+    if (!email || !EMAIL_RE.test(email)) return;
+    setSelected(prev => (prev.includes(email) ? prev : [...prev, email]));
+    setNewEmail("");
+  };
+
+  const removeRecipient = (email: string) => {
+    setSelected(prev => prev.filter(e => e !== email));
+  };
+
+  const handleSend = async () => {
+    if (selected.length === 0 || sending) return;
+    setSending(true);
+    setSendError(null);
+    try {
+      const res = await fetch("/api/send-shortlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bids, recipients: selected }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "Failed to send email");
+      }
+      setSent(true);
+      refreshSaved();
+      setTimeout(() => {
+        setSent(false);
+        setShowCompose(false);
+        setSelected([]);
+      }, 1800);
+    } catch (e) {
+      setSendError(e instanceof Error ? e.message : "Failed to send email");
+    } finally {
+      setSending(false);
+    }
   };
 
   if (bids.length === 0) {
@@ -46,6 +71,8 @@ export function ShortlistPanel({ bids, onRemove, onClear }: ShortlistPanelProps)
       </div>
     );
   }
+
+  const suggestions = savedRecipients.filter(e => !selected.includes(e));
 
   return (
     <div className="space-y-3">
@@ -100,33 +127,90 @@ export function ShortlistPanel({ bids, onRemove, onClear }: ShortlistPanelProps)
       {/* Email compose */}
       {showCompose ? (
         <div className="rounded-xl bg-card border border-accent/40 p-4 space-y-3 mt-4">
-          <p className="text-sm font-medium text-foreground">Send to email address:</p>
+          <p className="text-sm font-medium text-foreground">Send comparison matrix to:</p>
+
+          {/* Selected recipient chips */}
+          {selected.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {selected.map(email => (
+                <span
+                  key={email}
+                  className="inline-flex items-center gap-1 bg-accent/10 text-accent text-xs rounded-full px-2.5 py-1"
+                >
+                  {email}
+                  <button onClick={() => removeRecipient(email)} title="Remove">
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
           <input
             type="email"
-            value={emailTo}
-            onChange={e => setEmailTo(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && emailTo && handleSend()}
-            placeholder="name@example.com"
+            value={newEmail}
+            onChange={e => setNewEmail(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addRecipient(newEmail);
+              }
+            }}
+            placeholder="name@example.com — press Enter to add"
             autoFocus
             className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-accent"
           />
+
+          {/* Saved recipient suggestions */}
+          {!loadingSaved && suggestions.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {suggestions.map(email => (
+                <button
+                  key={email}
+                  onClick={() => addRecipient(email)}
+                  className="text-xs rounded-full border border-border px-2.5 py-1 text-muted hover:text-foreground hover:border-accent transition-colors"
+                >
+                  + {email}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {sendError && <p className="text-xs text-red-400">{sendError}</p>}
+
           <div className="flex gap-2">
             <button
-              onClick={() => setShowCompose(false)}
+              onClick={() => {
+                setShowCompose(false);
+                setSendError(null);
+              }}
               className="flex-1 py-2 rounded-lg border border-border text-sm text-muted hover:text-foreground transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSend}
-              disabled={!emailTo.trim()}
+              disabled={selected.length === 0 || sending}
               className="flex-1 py-2 rounded-lg bg-accent text-white text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-40 transition-opacity"
             >
-              <Send size={14} /> Open in Email
+              {sent ? (
+                <>
+                  <Check size={14} /> Sent!
+                </>
+              ) : sending ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" /> Sending…
+                </>
+              ) : (
+                <>
+                  <Send size={14} /> Send Email
+                </>
+              )}
             </button>
           </div>
           <p className="text-[11px] text-muted text-center">
-            Opens your email app with all {bids.length} bids pre-filled
+            Sends a comparison table for all {bids.length} bids to {selected.length || "…"} recipient
+            {selected.length === 1 ? "" : "s"}
           </p>
         </div>
       ) : (

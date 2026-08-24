@@ -57,3 +57,15 @@ CREATE POLICY "Public read bids"    ON bids    FOR SELECT USING (true);
 CREATE POLICY "Public read sources" ON sources FOR SELECT USING (true);
 
 -- The Python crawler writes via the service_role key (never exposed in frontend)
+
+-- Saved shortlist-email recipients (autocomplete for the "Send as Email" feature)
+CREATE TABLE IF NOT EXISTS saved_recipients (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email        TEXT NOT NULL UNIQUE,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_used_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE saved_recipients ENABLE ROW LEVEL SECURITY;
+-- No policies: only accessed server-side (Next.js API routes) via the service_role key,
+-- which bypasses RLS. Never exposed to the anon key / browser.
