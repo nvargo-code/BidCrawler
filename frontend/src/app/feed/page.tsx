@@ -28,7 +28,7 @@ const DUE_SOON_FILTERS: BidFiltersType = {
   search: "",
 };
 
-type Tab = "feed" | "due-soon" | "saved" | "settings";
+type Tab = "feed" | "new" | "due-soon" | "saved" | "settings";
 
 export default function FeedPage() {
   const [tab, setTab] = useState<Tab>("feed");
@@ -40,10 +40,13 @@ export default function FeedPage() {
   const activeFilters: BidFiltersType =
     tab === "due-soon" ? DUE_SOON_FILTERS : filters;
 
-  const { bids, loading, hasMore, loadMore } = useBids({
-    ...activeFilters,
-    search: activeFilters.search + (refreshKey > 0 ? ` ` : ""),
-  });
+  const { bids, loading, hasMore, loadMore } = useBids(
+    {
+      ...activeFilters,
+      search: activeFilters.search + (refreshKey > 0 ? ` ` : ""),
+    },
+    tab === "new" ? "recent" : "match"
+  );
 
   const handleTabChange = useCallback((t: Tab) => {
     if (t === "settings") {
@@ -55,7 +58,7 @@ export default function FeedPage() {
 
   const handleRefresh = useCallback(() => setRefreshKey(k => k + 1), []);
 
-  const showFeed = tab === "feed" || tab === "due-soon";
+  const showFeed = tab === "feed" || tab === "new" || tab === "due-soon";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -64,7 +67,7 @@ export default function FeedPage() {
         onRefresh={showFeed ? handleRefresh : undefined}
         refreshing={loading && bids.length === 0}
         filterSlot={
-          tab === "feed" && (
+          (tab === "feed" || tab === "new") && (
             <BidFilters filters={filters} onChange={setFilters} totalCount={bids.length} />
           )
         }
@@ -72,7 +75,7 @@ export default function FeedPage() {
 
       {/* Desktop tab bar */}
       <div className="hidden md:flex gap-1 px-4 py-2 max-w-2xl mx-auto w-full border-b border-border">
-        {(["feed", "due-soon", "saved"] as const).map((t) => (
+        {(["feed", "new", "due-soon", "saved"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -80,7 +83,7 @@ export default function FeedPage() {
               tab === t ? "bg-card text-foreground" : "text-muted hover:text-foreground"
             }`}
           >
-            {t === "feed" ? "All Bids" : t === "due-soon" ? "Due Soon" : "Saved"}
+            {t === "feed" ? "All Bids" : t === "new" ? "New" : t === "due-soon" ? "Due Soon" : "Saved"}
             {t === "saved" && shortlist.count > 0 && (
               <span className="ml-1.5 bg-accent text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">
                 {shortlist.count}
@@ -93,7 +96,7 @@ export default function FeedPage() {
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 pt-4 pb-24 md:pb-8">
         {showFeed ? (
           <>
-            {tab === "feed" && (filters.counties.length > 0 || filters.minScore > 10) && (
+            {(tab === "feed" || tab === "new") && (filters.counties.length > 0 || filters.minScore > 10) && (
               <div className="mb-4 flex items-center gap-2 overflow-x-auto scrollbar-hide">
                 {filters.counties.length > 0 && (
                   <span className="text-xs text-muted flex-shrink-0">
