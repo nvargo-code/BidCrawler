@@ -11,7 +11,7 @@ class BidMatcher:
         self.criteria = criteria
         # Compile keyword patterns (case-insensitive, word boundary)
         self._kw_patterns = [
-            (kw, re.compile(r"\b" + re.escape(kw) + r"\b", re.IGNORECASE))
+            (kw, re.compile(r"\b" + re.escape(kw) + r"s?\b", re.IGNORECASE))
             for kw in criteria.keywords
         ]
         # Lowercase county names for matching

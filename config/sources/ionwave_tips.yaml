@@ -1,7 +1,7 @@
 id: ionwave_tips
 source_type: scraper_playwright
 # Requires IONWAVE_USERNAME + IONWAVE_PASSWORD env vars (Novium credentials)
-enabled: false
+enabled: true
 max_pages: 10
 delay: 1.5
 ionwave_tenant: tips

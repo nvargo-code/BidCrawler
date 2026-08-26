@@ -53,8 +53,16 @@ class IonWaveSource(BaseSource):
         self._city = source_cfg.extras.get("location_city", "")
         self._requires_auth = source_cfg.extras.get("requires_auth", False)
 
-        self._username = os.environ.get("IONWAVE_USERNAME", "")
-        self._password = os.environ.get("IONWAVE_PASSWORD", "")
+        # Per-tenant credential override (e.g. IONWAVE_TIPS_USERNAME) takes
+        # precedence over the shared IONWAVE_USERNAME/PASSWORD, since not all
+        # gated tenants accept the same Novium login (TIPS-USA is separate).
+        tenant_prefix = f"IONWAVE_{tenant.upper()}_"
+        self._username = os.environ.get(
+            f"{tenant_prefix}USERNAME", os.environ.get("IONWAVE_USERNAME", "")
+        )
+        self._password = os.environ.get(
+            f"{tenant_prefix}PASSWORD", os.environ.get("IONWAVE_PASSWORD", "")
+        )
 
     def fetch(self, since: Optional[datetime] = None) -> Iterator[dict[str, Any]]:
         if not PLAYWRIGHT_AVAILABLE:
