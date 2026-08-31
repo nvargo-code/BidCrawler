@@ -77,12 +77,11 @@ class BidSyncSource(BaseSource):
 
     def fetch(self, since: Optional[datetime] = None) -> Iterator[dict[str, Any]]:
         if not self._email or not self._password:
-            logger.error("BidSync requires BIDSYNC_EMAIL and BIDSYNC_PASSWORD env vars")
-            return
+            raise RuntimeError("BidSync requires BIDSYNC_EMAIL and BIDSYNC_PASSWORD env vars")
 
         self._token, self._user_id = self._get_token()
         if not self._token:
-            return
+            raise RuntimeError("BidSync authentication failed")
 
         auth_headers = {"Authorization": f"Bearer {self._token}"}
 
@@ -137,7 +136,7 @@ class BidSyncSource(BaseSource):
                 data = resp.json()
             except Exception as exc:
                 logger.error("BidSync search error (page %d): %s", page_num, exc)
-                break
+                raise RuntimeError(f"BidSync search failed on page {page_num}") from exc
 
             bids = data.get("bids", [])
             if not bids:

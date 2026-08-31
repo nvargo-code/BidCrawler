@@ -227,7 +227,7 @@ class TexasESBDSource(BaseSource):
                 data = resp.json()
             except Exception as exc:
                 logger.error("ESBD API error on page %d: %s", page, exc)
-                break
+                raise RuntimeError(f"ESBD API request failed on page {page}") from exc
 
             lines = data.get("lines", [])
             if not lines:

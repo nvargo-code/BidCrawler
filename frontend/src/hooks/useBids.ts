@@ -9,12 +9,12 @@ const RECENT_WINDOW_HOURS = 48;
 
 export type BidSort = "match" | "recent";
 
-export function useBids(filters: BidFilters, sort: BidSort = "match") {
+export function useBids(filters: BidFilters, sort: BidSort = "match", excludeSourceId?: string) {
   const [bids, setBids] = useState<Bid[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const offset = useRef(0);
-  const filterKey = JSON.stringify(filters) + "|" + sort;
+  const filterKey = JSON.stringify(filters) + "|" + sort + "|" + (excludeSourceId ?? "");
 
   const fetchPage = useCallback(
     async (reset: boolean) => {
@@ -49,6 +49,8 @@ export function useBids(filters: BidFilters, sort: BidSort = "match") {
         q = q.in("location_county", filters.counties);
       if (filters.sources.length > 0)
         q = q.in("source_id", filters.sources);
+      else if (excludeSourceId)
+        q = q.neq("source_id", excludeSourceId);
       if (filters.agencyTypes.length > 0)
         q = q.in("agency_type", filters.agencyTypes);
       if (filters.search)

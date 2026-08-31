@@ -67,15 +67,21 @@ def sync_to_supabase(db_path: Path) -> dict[str, int]:
         cols = [c for c in SYNC_COLS if c in available_cols]
         cols_sql = ", ".join(cols)
 
-        bids_df = db.conn.execute(f"SELECT {cols_sql} FROM bids WHERE status = 'open'").df()
+        # Sync every bid regardless of status (not just open ones) — a bid
+        # that just got marked closed locally must still be pushed so its
+        # status change actually reaches Supabase, or the live site would
+        # keep showing it as open forever. The frontend filters status='open'
+        # on its own queries.
+        bids_df = db.conn.execute(f"SELECT {cols_sql} FROM bids").df()
         if bids_df.empty:
-            logger.info("No open bids in local DB to sync")
+            logger.info("No bids in local DB to sync")
             return results
 
         bid_rows = _df_to_dicts(bids_df)
         _upsert_batched(client, "bids", bid_rows, on_conflict="id")
         results["bids"] = len(bid_rows)
-        logger.info("Synced %d open bids to Supabase", len(bid_rows))
+        open_count = int((bids_df["status"] == "open").sum())
+        logger.info("Synced %d bids to Supabase (%d open)", len(bid_rows), open_count)
 
         return results
 

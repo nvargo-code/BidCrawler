@@ -46,11 +46,11 @@ class DallasBonfireSource(BaseSource):
             data = resp.json()
         except Exception as exc:
             logger.error("Dallas Bonfire API error: %s", exc)
-            return
+            raise RuntimeError("Dallas Bonfire API request failed") from exc
 
         if not data.get("success"):
             logger.error("Dallas Bonfire API returned failure: %s", data.get("message"))
-            return
+            raise RuntimeError(f"Dallas Bonfire API returned failure: {data.get('message')}")
 
         projects = data.get("payload", {}).get("projects", {})
         logger.info("Dallas Bonfire: %d open opportunities", len(projects))

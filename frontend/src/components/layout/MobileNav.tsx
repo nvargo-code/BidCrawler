@@ -1,11 +1,11 @@
 "use client";
 
-import { Home, SlidersHorizontal, CalendarDays, Bookmark, Sparkles } from "lucide-react";
+import { Home, Landmark, CalendarDays, Bookmark, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MobileNavProps {
-  activeTab: "feed" | "new" | "due-soon" | "saved" | "settings";
-  onTabChange: (tab: "feed" | "new" | "due-soon" | "saved" | "settings") => void;
+  activeTab: "feed" | "new" | "due-soon" | "esbd" | "saved";
+  onTabChange: (tab: "feed" | "new" | "due-soon" | "esbd" | "saved") => void;
   savedCount?: number;
 }
 
@@ -14,8 +14,8 @@ export function MobileNav({ activeTab, onTabChange, savedCount }: MobileNavProps
     { id: "feed" as const, icon: Home, label: "Feed" },
     { id: "new" as const, icon: Sparkles, label: "New" },
     { id: "due-soon" as const, icon: CalendarDays, label: "Due Soon" },
+    { id: "esbd" as const, icon: Landmark, label: "ESBD" },
     { id: "saved" as const, icon: Bookmark, label: "Saved" },
-    { id: "settings" as const, icon: SlidersHorizontal, label: "Filters" },
   ];
 
   return (

@@ -141,6 +141,28 @@ class BidDB:
                 updated += 1
         return inserted, updated
 
+    def close_missing_bids(self, source_id: str, seen_external_ids: set[str]) -> int:
+        """Mark bids as closed if a fresh full crawl of source_id no longer lists them.
+
+        Only call this after a crawl that completed without errors — an empty
+        or partial fetch caused by a real failure would otherwise incorrectly
+        close every bid for that source.
+        """
+        rows = self.conn.execute(
+            "SELECT external_id FROM bids WHERE source_id=? AND status='open'",
+            [source_id],
+        ).fetchall()
+        existing_ids = {r[0] for r in rows}
+        to_close = existing_ids - seen_external_ids
+        if not to_close:
+            return 0
+        placeholders = ", ".join(["?"] * len(to_close))
+        self.conn.execute(
+            f"UPDATE bids SET status='closed' WHERE source_id=? AND external_id IN ({placeholders})",
+            [source_id, *to_close],
+        )
+        return len(to_close)
+
     # ------------------------------------------------------------------
     # Queries
     # ------------------------------------------------------------------

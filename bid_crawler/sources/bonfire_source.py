@@ -67,11 +67,11 @@ class BonfireSource(BaseSource):
             data = resp.json()
         except Exception as exc:
             logger.error("%s Bonfire API error: %s", self._agency, exc)
-            return
+            raise RuntimeError(f"{self._agency} Bonfire API request failed") from exc
 
         if not data.get("success"):
             logger.error("%s Bonfire API failure: %s", self._agency, data.get("message"))
-            return
+            raise RuntimeError(f"{self._agency} Bonfire API returned failure: {data.get('message')}")
 
         projects = data.get("payload", {}).get("projects", {})
         # Some Bonfire tenants return projects as a list, others as a dict

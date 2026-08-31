@@ -6,19 +6,23 @@ import { Modal, ModalBody, ModalFooter } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
 import type { BidFilters } from "@/types/bid";
-import { DFW_COUNTIES, SOURCE_LABELS } from "@/types/bid";
+import { DFW_COUNTIES, SOURCE_LABELS, ESBD_SOURCE_ID } from "@/types/bid";
 
 const AGENCY_TYPES = ["city", "county", "school", "state", "university", "authority"];
 
-const ALL_SOURCES = Object.entries(SOURCE_LABELS).map(([id, label]) => ({ id, label }));
+// ESBD has its own dedicated tab, so it's not offered as a Source filter option here.
+const ALL_SOURCES = Object.entries(SOURCE_LABELS)
+  .filter(([id]) => id !== ESBD_SOURCE_ID)
+  .map(([id, label]) => ({ id, label }));
 
 interface BidFiltersProps {
   filters: BidFilters;
   onChange: (f: BidFilters) => void;
   totalCount?: number;
+  hideSourceFilter?: boolean;
 }
 
-export function BidFilters({ filters, onChange, totalCount }: BidFiltersProps) {
+export function BidFilters({ filters, onChange, totalCount, hideSourceFilter }: BidFiltersProps) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<BidFilters>(filters);
 
@@ -135,23 +139,25 @@ export function BidFilters({ filters, onChange, totalCount }: BidFiltersProps) {
           </div>
 
           {/* Sources */}
-          <div>
-            <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-2">
-              Source
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {ALL_SOURCES.map(({ id, label }) => (
-                <Tag
-                  key={id}
-                  size="sm"
-                  selected={draft.sources.includes(id)}
-                  onClick={() => setDraft({ ...draft, sources: toggle(draft.sources, id) })}
-                >
-                  {label}
-                </Tag>
-              ))}
+          {!hideSourceFilter && (
+            <div>
+              <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-2">
+                Source
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {ALL_SOURCES.map(({ id, label }) => (
+                  <Tag
+                    key={id}
+                    size="sm"
+                    selected={draft.sources.includes(id)}
+                    onClick={() => setDraft({ ...draft, sources: toggle(draft.sources, id) })}
+                  >
+                    {label}
+                  </Tag>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
         </ModalBody>
 

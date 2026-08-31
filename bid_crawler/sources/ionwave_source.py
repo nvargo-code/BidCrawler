@@ -66,17 +66,15 @@ class IonWaveSource(BaseSource):
 
     def fetch(self, since: Optional[datetime] = None) -> Iterator[dict[str, Any]]:
         if not PLAYWRIGHT_AVAILABLE:
-            logger.error(
+            raise RuntimeError(
                 "playwright required for IonWave. "
                 "pip install playwright && playwright install chromium"
             )
-            return
 
         if self._requires_auth and not (self._username and self._password):
-            logger.error(
-                "%s: requires auth but IONWAVE_USERNAME/IONWAVE_PASSWORD not set", self._agency
+            raise RuntimeError(
+                f"{self._agency}: requires auth but IONWAVE_USERNAME/IONWAVE_PASSWORD not set"
             )
-            return
 
         with sync_playwright() as pw:
             browser = pw.chromium.launch(headless=True)
@@ -87,9 +85,13 @@ class IonWaveSource(BaseSource):
             try:
                 if self._requires_auth:
                     self._login(page)
+                # A missing bid table (PWTimeout inside _scrape_bids) is a
+                # legitimate "nothing open right now" signal and is handled
+                # there without raising. Anything that reaches here (a login
+                # failure, a crashed navigation, etc.) is a real failure and
+                # must propagate so the pipeline doesn't mistake it for an
+                # empty-but-successful crawl.
                 yield from self._scrape_bids(page)
-            except Exception as exc:
-                logger.error("%s IonWave fetch error: %s", self._agency, exc, exc_info=True)
             finally:
                 browser.close()
 

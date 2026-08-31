@@ -122,7 +122,8 @@ def run(source_ids, run_all, skip_fresh, dry_run):
             else:
                 click.echo(
                     f"  Fetched={result.fetched}, Matched={result.matched}, "
-                    f"Inserted={result.inserted}, Updated={result.updated}"
+                    f"Inserted={result.inserted}, Updated={result.updated}, "
+                    f"Closed={result.closed}"
                 )
             if result.errors:
                 for err in result.errors:
@@ -268,7 +269,7 @@ def sync(run_first):
     click.echo("Syncing to Supabase…")
     try:
         counts = sync_to_supabase(db_path)
-        click.echo(f"Done. Pushed {counts['sources']} sources, {counts['bids']} open bids to Supabase.")
+        click.echo(f"Done. Pushed {counts['sources']} sources, {counts['bids']} bids to Supabase.")
     except RuntimeError as e:
         click.echo(f"[ERROR] {e}", err=True)
 

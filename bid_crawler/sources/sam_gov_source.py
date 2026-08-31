@@ -52,6 +52,7 @@ class SamGovSource(BaseSource):
         posted_to = today.strftime("%m/%d/%Y")
 
         seen_ids: set[str] = set()
+        self._had_error = False
 
         for keyword in _SEARCH_KEYWORDS:
             logger.debug("SAM.gov: searching keyword %r", keyword)
@@ -59,6 +60,13 @@ class SamGovSource(BaseSource):
                 base_url, headers, keyword, posted_from, posted_to, seen_ids
             )
             self._sleep()
+
+        # A request failure (auth, network, etc.) means we can't trust this
+        # fetch as a complete picture of what's currently open — surface it
+        # as an error so the pipeline doesn't treat an empty/partial result
+        # as "nothing is open anymore" and wrongly close existing bids.
+        if self._had_error:
+            raise RuntimeError("SAM.gov fetch had one or more failed requests")
 
     def _search_keyword(
         self,
@@ -86,11 +94,13 @@ class SamGovSource(BaseSource):
                 resp = self.session.get(base_url, headers=headers, params=params, timeout=10)
                 if resp.status_code == 429:
                     logger.warning("SAM.gov: rate limited (429) — daily limit likely exhausted. Stopping.")
+                    self._had_error = True
                     return
                 resp.raise_for_status()
                 data = resp.json()
             except Exception as exc:
                 logger.error("SAM.gov API error (keyword=%r, page=%d): %s", keyword, page, exc)
+                self._had_error = True
                 break
 
             opportunities = data.get("opportunitiesData", [])

@@ -30,6 +30,8 @@ export interface BidFilters {
   search: string;
 }
 
+export const ESBD_SOURCE_ID = "texas_esbd";
+
 export const DFW_COUNTIES = [
   "Dallas", "Tarrant", "Collin", "Denton", "Rockwall",
   "Kaufman", "Ellis", "Johnson", "Parker", "Wise", "Hunt", "Grayson",

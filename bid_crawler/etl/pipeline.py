@@ -22,6 +22,7 @@ class PipelineResult:
         self.matched = 0
         self.inserted = 0
         self.updated = 0
+        self.closed = 0
         self.errors: list[str] = []
         self.skipped_fresh = False
 
@@ -113,6 +114,18 @@ def run_source(
         ins, upd = load_bids(db, transformed)
         result.inserted = ins
         result.updated = upd
+
+    # Close bids that dropped off this source's live listing entirely — a
+    # crawl that errored can't tell real closures from a broken fetch, so
+    # only reconcile when the fetch actually completed cleanly.
+    if not result.errors:
+        fetched_ids = {str(r.get("external_id", "")) for r in raw_bids if r.get("external_id")}
+        result.closed = db.close_missing_bids(source_cfg.id, fetched_ids)
+        if result.closed:
+            logger.info(
+                "Source %s: closed %d bids no longer listed by the source",
+                source_cfg.id, result.closed,
+            )
 
     # Update source last_run timestamp
     db.update_source_run(source_cfg.id, result.matched)

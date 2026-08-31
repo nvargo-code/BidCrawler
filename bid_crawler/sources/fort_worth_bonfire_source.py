@@ -47,11 +47,11 @@ class FortWorthBonfireSource(BaseSource):
             data = resp.json()
         except Exception as exc:
             logger.error("Fort Worth Bonfire API error: %s", exc)
-            return
+            raise RuntimeError("Fort Worth Bonfire API request failed") from exc
 
         if not data.get("success"):
             logger.error("Fort Worth Bonfire API returned failure: %s", data.get("message"))
-            return
+            raise RuntimeError(f"Fort Worth Bonfire API returned failure: {data.get('message')}")
 
         projects = data.get("payload", {}).get("projects", {})
         logger.info("Fort Worth Bonfire: %d open opportunities", len(projects))
