@@ -10,6 +10,7 @@ import { BidFilters } from "@/components/bids/BidFilters";
 import { ShortlistPanel } from "@/components/bids/ShortlistPanel";
 import { useBids } from "@/hooks/useBids";
 import { useShortlist } from "@/hooks/useShortlist";
+import { useLastUpdated } from "@/hooks/useLastUpdated";
 import type { BidFilters as BidFiltersType } from "@/types/bid";
 import { ESBD_SOURCE_ID } from "@/types/bid";
 
@@ -41,6 +42,7 @@ export default function FeedPage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const shortlist = useShortlist();
+  const lastUpdated = useLastUpdated(refreshKey);
 
   const isEsbdTab = tab === "esbd";
   const baseFilters: BidFiltersType = tab === "due-soon" ? DUE_SOON_FILTERS : filters;
@@ -69,6 +71,7 @@ export default function FeedPage() {
         bidCount={showFeed ? bids.length : shortlist.count}
         onRefresh={showFeed ? handleRefresh : undefined}
         refreshing={loading && bids.length === 0}
+        lastUpdated={lastUpdated}
         filterSlot={
           (tab === "feed" || tab === "new" || tab === "esbd") && (
             <BidFilters
